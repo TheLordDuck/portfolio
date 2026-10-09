@@ -1,0 +1,126 @@
+:root {
+  --bg: #0b0e0c;
+  --bar: #111613;
+  --border: #1f2722;
+  --fg: #c9d1c8;
+  --dim: #5f6b62;
+  --green: #4ade80;
+  --amber: #fbbf24;
+  --blue: #60a5fa;
+  --pink: #f472b6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 14px/1.65 "JetBrains Mono", ui-monospace, monospace;
+  overflow-x: hidden;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  background: repeating-linear-gradient(0deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px);
+}
+a { color: var(--blue); }
+.p { color: var(--green); } .d { color: var(--dim); } .a { color: var(--amber); } .b { color: var(--blue); } .k { color: var(--pink); }
+
+/* ---------- prototype toolbar (not part of the design) ---------- */
+.proto-bar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+  padding: 8px 16px; background: #1a1f1c; border-bottom: 1px solid #2a332e;
+  font: 12px/1.4 system-ui, sans-serif; color: #9aa59d;
+}
+.proto-bar b { color: #e5e7eb; font-weight: 600; }
+.proto-bar .group { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.proto-bar a, .proto-bar button {
+  font: inherit; color: #c9d1c8; background: #252c28; border: 1px solid #333d37;
+  border-radius: 6px; padding: 3px 9px; text-decoration: none; cursor: pointer;
+}
+.proto-bar a.on, .proto-bar button.on { background: var(--green); color: #0b0e0c; border-color: var(--green); }
+.proto-bar .hint { margin-left: auto; color: #6b766f; }
+
+/* ---------- terminal ---------- */
+.window {
+  max-width: 900px; margin: 24px auto; border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; min-height: calc(100vh - 90px); display: flex; flex-direction: column; background: var(--bg);
+}
+.title-bar {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bar);
+  border-bottom: 1px solid var(--border); color: var(--dim); font-size: 12px;
+}
+.dots { display: flex; gap: 8px; }
+.dots i { width: 11px; height: 11px; border-radius: 50%; }
+.dots i:nth-child(1) { background: #f87171; } .dots i:nth-child(2) { background: #fbbf24; } .dots i:nth-child(3) { background: #4ade80; }
+.title-bar .title { margin: 0 auto; }
+.screen { padding: 20px; flex: 1; overflow-wrap: anywhere; cursor: text; min-width: 0; }
+.screen pre { font: inherit; white-space: pre-wrap; }
+.nick { color: var(--green); font-weight: 700; font-size: 26px; letter-spacing: 0.04em; text-shadow: 0 0 12px rgb(74 222 128 / 0.4); }
+button.cmd {
+  font: inherit; background: none; border: 0; color: var(--blue); cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+button.cmd:hover { color: var(--amber); }
+.line { display: flex; gap: 8px; }
+.prompt-input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--fg); font: inherit; caret-color: var(--green); }
+.block { margin: 4px 0 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 2px 16px; }
+.icon-btn {
+  font: inherit; background: none; border: 1px solid var(--border); color: var(--dim);
+  border-radius: 5px; padding: 0 7px; cursor: pointer; line-height: 1.6;
+}
+.icon-btn:hover { color: var(--fg); border-color: var(--dim); }
+
+/* ---------- gallery ---------- */
+.gallery { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.gallery-stage { position: relative; }
+.gallery-nav { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--dim); }
+.gallery-nav .fname { margin-left: auto; color: var(--fg); }
+.gallery-dots { display: flex; gap: 6px; }
+.gallery-dots button { width: 18px; height: 6px; border: 0; border-radius: 3px; background: var(--border); cursor: pointer; }
+.gallery-dots button.on { background: var(--green); }
+.gallery-empty { color: var(--dim); padding: 30px 0; text-align: center; border: 1px dashed var(--border); border-radius: 8px; }
+
+.shot { position: relative; border-radius: 6px; overflow: hidden; background: #050705; }
+.shot img { display: block; width: 100%; height: auto; }
+
+/* style: phosphor (green CRT, real colour on hover) */
+.shot.phosphor { border: 1px solid #1f3d2a; box-shadow: 0 0 24px rgb(74 222 128 / 0.12); }
+.shot.phosphor img { filter: grayscale(1) sepia(1) hue-rotate(75deg) saturate(2.6) brightness(0.8) contrast(1.15); transition: filter 0.35s; }
+.shot.phosphor::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.45));
+  transition: opacity 0.35s;
+}
+.shot.phosphor:hover img { filter: none; }
+.shot.phosphor:hover::after { opacity: 0; }
+
+/* style: loading line by line */
+.shot.loading { border: 1px solid var(--border); background: repeating-linear-gradient(45deg, #0f1411 0 6px, #0b0e0c 6px 12px); }
+.shot.loading img { clip-path: inset(0 0 100% 0); }
+.load-text { font-size: 12px; color: var(--green); }
+.load-text .bar { color: var(--dim); }
+
+/* style: ascii */
+.shot.ascii { border: 1px solid var(--border); cursor: zoom-in; padding: 6px 0; }
+.shot.ascii pre { color: var(--green); line-height: 1; letter-spacing: 0; white-space: pre; overflow: hidden; text-align: center; text-shadow: 0 0 6px rgb(74 222 128 / 0.35); }
+.shot.ascii img { display: none; }
+.shot.ascii.reveal { cursor: zoom-out; padding: 0; }
+.shot.ascii.reveal pre { display: none; }
+.shot.ascii.reveal img { display: block; }
+.ascii-hint { position: absolute; right: 8px; bottom: 6px; font-size: 11px; color: var(--dim); background: rgb(0 0 0 / 0.6); padding: 0 6px; border-radius: 4px; }
+
+/* style: framed */
+.shot.framed { border: 1px solid var(--border); box-shadow: 0 18px 40px -18px rgb(0 0 0 / 0.8); }
+.shot.framed .shot-bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--bar); border-bottom: 1px solid var(--border); font-size: 11px; color: var(--dim); }
+.shot.framed .shot-bar i { width: 8px; height: 8px; border-radius: 50%; background: #2b332e; }
+.shot.framed .shot-bar span { margin-left: 6px; }
+
+@media (max-width: 600px) {
+  .window { margin: 0; border-radius: 0; border: 0; min-height: calc(100vh - 70px); }
+  .proto-bar .hint { display: none; }
+}

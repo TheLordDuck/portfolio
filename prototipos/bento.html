@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flavio — Bento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#eef0f3; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0a0b0e; --card:#15171c; --ink:#f1f5f9; --muted:#8b95a7; --line:#23262e; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); font:400 15px/1.5 Geist, system-ui, sans-serif; padding:32px 16px; }
+  .grid { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:repeat(4, 1fr); grid-auto-rows:190px; gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px; position:relative; overflow:hidden; display:flex; flex-direction:column; transition:transform .25s, box-shadow .25s; }
+  .card:hover { transform:translateY(-3px); box-shadow:0 14px 34px -14px rgb(0 0 0 / .25); }
+  .w2 { grid-column:span 2; } .h2 { grid-row:span 2; }
+  h1 { font-size:34px; line-height:1.1; font-weight:700; letter-spacing:-.03em; }
+  h3 { font-size:18px; font-weight:600; letter-spacing:-.01em; }
+  .muted { color:var(--muted); font-size:14px; }
+  .chip { position:absolute; top:18px; right:18px; font-size:11px; font-weight:500; padding:3px 9px; border-radius:99px; background:var(--bg); color:var(--muted); }
+  .bottom { margin-top:auto; }
+  .tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .tags span { font-size:11px; padding:2px 8px; border-radius:6px; background:var(--bg); color:var(--muted); }
+  .avatar { width:52px; height:52px; border-radius:50%; background:conic-gradient(from 200deg, #f97316, #ec4899, #8b5cf6, #f97316); margin-bottom:auto; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:#22c55e; margin-right:6px; box-shadow:0 0 0 4px rgb(34 197 94 / .2); }
+  a.link { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); color:inherit; text-decoration:none; font-weight:500; }
+  a.link:last-child { border:0; }
+  .big { font-size:56px; font-weight:700; letter-spacing:-.04em; line-height:1; }
+  /* mock factura */
+  .invoice { margin-top:18px; background:var(--bg); border-radius:14px; padding:16px; font-size:12px; flex:1; }
+  .invoice .r { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px dashed var(--line); }
+  .invoice .tot { font-weight:700; font-size:15px; border:0; padding-top:12px; }
+  .pill { font-size:10px; padding:2px 7px; border-radius:99px; background:#dcfce7; color:#166534; }
+  .pill.w { background:#fef3c7; color:#92400e; }
+  /* mock cartas */
+  .fan { position:absolute; right:-10px; bottom:-30px; width:260px; height:200px; }
+  .fan div { position:absolute; bottom:0; left:90px; width:96px; height:134px; border-radius:9px; border:3px solid #111; transform-origin:50% 120%; box-shadow:0 6px 18px rgb(0 0 0 / .3); }
+  .fan div:nth-child(1) { background:linear-gradient(160deg,#fde68a,#d97706); transform:rotate(-24deg); }
+  .fan div:nth-child(2) { background:linear-gradient(160deg,#bfdbfe,#2563eb); transform:rotate(-8deg); }
+  .fan div:nth-child(3) { background:linear-gradient(160deg,#fecaca,#dc2626); transform:rotate(8deg); }
+  .fan div:nth-child(4) { background:linear-gradient(160deg,#e9d5ff,#7c3aed); transform:rotate(24deg); }
+  /* mock calendario */
+  .cal { display:grid; grid-template-columns:repeat(14, 1fr); gap:4px; margin-top:14px; }
+  .cal i { aspect-ratio:1; border-radius:4px; background:var(--bg); }
+  .cal i.a { background:#3b82f6; } .cal i.b { background:#93c5fd; } .cal i.v { background:#f59e0b; }
+  .small .ico { font-size:26px; margin-bottom:auto; }
+  .filters { max-width:1120px; margin:0 auto 14px; display:flex; gap:6px; flex-wrap:wrap; }
+  .filters button { font:inherit; font-size:13px; padding:6px 14px; border-radius:99px; border:1px solid var(--line); background:var(--card); color:var(--muted); cursor:pointer; }
+  .filters button.on { background:var(--ink); color:var(--card); border-color:var(--ink); }
+  .dim { opacity:.25; transform:scale(.98); }
+  @media (max-width:900px) { .grid { grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:560px) { .grid { grid-template-columns:1fr; grid-auto-rows:auto; } .w2, .h2 { grid-column:auto; grid-row:auto; } .card { min-height:170px; } .fan { position:relative; right:auto; bottom:auto; margin:10px auto -40px; } }
+</style>
+</head>
+<body>
+<div class="filters" id="filters"></div>
+<main class="grid" id="grid">
+  <div class="card w2" data-fixed>
+    <div class="avatar"></div>
+    <h1>Hola, soy Flavio.<br><span style="color:var(--muted)">Hago apps que se usan de verdad.</span></h1>
+  </div>
+  <div class="card" data-fixed>
+    <p class="muted"><span class="dot"></span>Disponible</p>
+    <div class="bottom">
+      <a class="link" href="#">GitHub <span>↗</span></a>
+      <a class="link" href="#">LinkedIn <span>↗</span></a>
+      <a class="link" href="mailto:hola@ejemplo.com">Email <span>↗</span></a>
+    </div>
+  </div>
+  <div class="card" data-fixed>
+    <p class="muted">Proyectos</p>
+    <div class="bottom"><div class="big" id="total"></div><p class="muted">Next.js · Postgres · TS · Godot</p></div>
+  </div>
+
+  <div class="card w2 h2" data-cat="Clientes">
+    <span class="chip">Cliente</span>
+    <h3>Bri-LLAR</h3><p class="muted">Facturas, albaranes y horas para una empresa de limpieza.</p>
+    <div class="invoice">
+      <div class="r"><b>Factura 2026-0142</b><span class="pill">Enviada</span></div>
+      <div class="r"><span>Limpieza oficinas · septiembre</span><span>1.240,00 €</span></div>
+      <div class="r"><span>Cristales · 2 visitas</span><span>180,00 €</span></div>
+      <div class="r"><span>Albarán 0381</span><span class="pill w">Pendiente</span></div>
+      <div class="r tot"><span>Total</span><span>1.718,20 €</span></div>
+    </div>
+    <div class="tags"><span>Next.js</span><span>Prisma</span><span>PDF</span><span>4 idiomas</span></div>
+  </div>
+  <div class="card w2" data-cat="Magic">
+    <span class="chip">v0.5</span>
+    <h3>Endstep Arena</h3><p class="muted" style="max-width:55%">Extensión de Chrome que pone un tablero estilo Arena encima de endstep.cc.</p>
+    <div class="fan"><div></div><div></div><div></div><div></div></div>
+  </div>
+  <div class="card w2" data-cat="Clientes">
+    <span class="chip">En desarrollo</span>
+    <h3>PersonAND</h3><p class="muted">Gestión laboral para Andorra: contratos, altas, horas y vacaciones.</p>
+    <div class="cal" id="cal"></div>
+  </div>
+  <!-- el resto se rellena desde proyectos.js -->
+</main>
+<script src="proyectos.js"></script>
+<script>
+  const iconos = { Clientes:"💼", Magic:"🃏", Herramientas:"🛠️", Infra:"🖧", Juegos:"🎮" };
+  const grid = document.getElementById("grid");
+  document.getElementById("total").textContent = PROYECTOS.length;
+  document.getElementById("cal").innerHTML = Array.from({ length:28 }, (_, i) =>
+    `<i class="${[3,4,5,10,11,12,17,18].includes(i) ? "a" : [6,13,19].includes(i) ? "b" : [22,23,24].includes(i) ? "v" : ""}"></i>`).join("");
+  PROYECTOS.filter(p => !p.destacado).forEach((p, i) => {
+    const el = document.createElement("div");
+    el.className = "card small" + (i === 0 || i === 5 ? " w2" : "");
+    el.dataset.cat = p.categoria;
+    el.innerHTML = `<span class="chip">${p.categoria}</span><div class="ico">${iconos[p.categoria]}</div>
+      <h3>${p.nombre}</h3><p class="muted">${p.corto}</p>
+      <div class="tags">${p.stack.slice(0, 3).map(s => `<span>${s}</span>`).join("")}</div>`;
+    grid.appendChild(el);
+  });
+  const cats = ["Todos", ...new Set(PROYECTOS.map(p => p.categoria))];
+  const filters = document.getElementById("filters");
+  function filtrar(c) {
+    filters.innerHTML = cats.map(x => `<button class="${x === c ? "on" : ""}">${x}</button>`).join("");
+    grid.querySelectorAll("[data-cat]").forEach(el => el.classList.toggle("dim", c !== "Todos" && el.dataset.cat !== c));
+  }
+  filters.addEventListener("click", e => e.target.tagName === "BUTTON" && filtrar(e.target.textContent));
+  filtrar("Todos");
+</script>
+</body>
+</html>

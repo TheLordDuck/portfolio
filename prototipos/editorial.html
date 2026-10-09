@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flavio — Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f4f1ea; --ink:#141412; --muted:#7a766c; --line:#d6d1c4; --accent:#c2410c; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#12110f; --ink:#ece8df; --muted:#8c877c; --line:#2c2a26; --accent:#fb923c; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); font:400 15px/1.55 Inter, system-ui, sans-serif; }
+  .wrap { max-width:1100px; margin:0 auto; padding:0 24px; }
+  header { display:flex; justify-content:space-between; padding:28px 0; font-size:13px; letter-spacing:.04em; text-transform:uppercase; border-bottom:1px solid var(--line); }
+  header nav a { color:var(--muted); text-decoration:none; margin-left:20px; }
+  header nav a:hover { color:var(--ink); }
+  .hero { padding:120px 0 96px; }
+  .hero h1 { font:400 clamp(48px, 9vw, 120px)/.95 "Instrument Serif", serif; letter-spacing:-.02em; }
+  .hero h1 em { color:var(--accent); }
+  .hero p { max-width:460px; margin-top:32px; color:var(--muted); font-size:17px; }
+  .filters { display:flex; gap:8px; flex-wrap:wrap; padding:20px 0; border-top:1px solid var(--ink); }
+  .filters button { font:inherit; font-size:13px; background:none; border:1px solid var(--line); color:var(--muted); padding:6px 14px; border-radius:99px; cursor:pointer; }
+  .filters button.on, .filters button:hover { border-color:var(--ink); color:var(--ink); }
+  .count { margin-left:auto; color:var(--muted); font-size:13px; align-self:center; }
+  ol { list-style:none; }
+  li { border-top:1px solid var(--line); }
+  li:last-child { border-bottom:1px solid var(--line); }
+  .row { display:grid; grid-template-columns:70px 1fr 1fr 24px; gap:16px; align-items:baseline; padding:22px 0; cursor:pointer; }
+  .row .n { font:400 36px/1 "Instrument Serif", serif; transition:transform .3s, color .3s; }
+  .row .y, .row .s { color:var(--muted); font-size:13px; }
+  .row .arrow { transition:transform .3s; }
+  li:hover .n { transform:translateX(10px); color:var(--accent); }
+  li.open .arrow { transform:rotate(90deg); }
+  .detail { display:grid; grid-template-columns:70px 1fr 1fr; gap:16px; max-height:0; overflow:hidden; transition:max-height .4s ease; }
+  li.open .detail { max-height:300px; }
+  .detail p { grid-column:2; padding-bottom:28px; font-size:16px; }
+  .detail .tags { grid-column:3; display:flex; flex-wrap:wrap; gap:6px; align-content:start; }
+  .tags span { font-size:12px; padding:3px 10px; border:1px solid var(--line); border-radius:99px; }
+  .badge { font-size:11px; color:var(--accent); margin-left:10px; text-transform:uppercase; letter-spacing:.05em; font-family:Inter, sans-serif; vertical-align:middle; }
+  footer { padding:120px 0 48px; }
+  footer h2 { font:400 clamp(40px, 7vw, 88px)/1 "Instrument Serif", serif; }
+  footer a { color:var(--accent); }
+  footer .meta { margin-top:48px; display:flex; justify-content:space-between; color:var(--muted); font-size:13px; }
+  @media (max-width:700px) {
+    .row { grid-template-columns:48px 1fr 20px; } .row .s { display:none; }
+    .detail { grid-template-columns:48px 1fr; } .detail .tags { grid-column:2; padding-bottom:24px; } .detail p { padding-bottom:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><span>Flavio</span><nav><a href="#proyectos">Proyectos</a><a href="#contacto">Contacto</a></nav></header>
+  <section class="hero">
+    <h1>Construyo software<br>para <em>gente real</em><br>y para mí.</h1>
+    <p>Apps de gestión para negocios, herramientas propias, cosas de Magic: The Gathering y algún juego en Godot.</p>
+  </section>
+  <section id="proyectos">
+    <div class="filters" id="filters"></div>
+    <ol id="lista"></ol>
+  </section>
+  <footer id="contacto">
+    <h2>¿Hablamos?<br><a href="mailto:hola@ejemplo.com">hola@ejemplo.com</a></h2>
+    <div class="meta"><span>© 2026 Flavio</span><span>GitHub · LinkedIn</span></div>
+  </footer>
+</div>
+<script src="proyectos.js"></script>
+<script>
+  const lista = document.getElementById("lista"), filters = document.getElementById("filters");
+  const cats = ["Todos", ...new Set(PROYECTOS.map(p => p.categoria))];
+  let actual = "Todos";
+  function pintar() {
+    const ps = PROYECTOS.filter(p => actual === "Todos" || p.categoria === actual);
+    lista.innerHTML = ps.map(p => `
+      <li>
+        <div class="row"><span class="y">${p.año}</span>
+          <span class="n">${p.nombre}${p.estado ? `<span class="badge">${p.estado}</span>` : ""}</span>
+          <span class="s">${p.corto}</span><span class="arrow">→</span></div>
+        <div class="detail"><p>${p.descripcion}</p><div class="tags">${p.stack.map(s => `<span>${s}</span>`).join("")}</div></div>
+      </li>`).join("");
+    filters.innerHTML = cats.map(c => `<button class="${c === actual ? "on" : ""}">${c}</button>`).join("")
+      + `<span class="count">${ps.length} proyectos</span>`;
+  }
+  filters.addEventListener("click", e => { if (e.target.tagName === "BUTTON") { actual = e.target.textContent; pintar(); } });
+  lista.addEventListener("click", e => { const li = e.target.closest("li"); if (li) li.classList.toggle("open"); });
+  pintar();
+</script>
+</body>
+</html>

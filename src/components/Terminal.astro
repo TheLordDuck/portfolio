@@ -1,0 +1,633 @@
+---
+import { getImage } from "astro:assets";
+import { profile, projects } from "../data/projects";
+import { languages, pathFor, ui, type Lang } from "../i18n/ui";
+import { duckSvg } from "../scripts/ascii";
+import type { ShotsData } from "../scripts/shots-panel";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+
+// Screenshots live in src/assets/projects/<id>/ and are resized + converted to WebP at build time.
+const imageFiles = import.meta.glob<{ default: ImageMetadata }>("../assets/projects/*/*.{png,jpg,jpeg,webp}");
+const shots: ShotsData = {};
+for (const project of projects) {
+  for (const shot of project.shots ?? []) {
+    const path = `../assets/projects/${project.id}/${shot.file}`;
+    const load = imageFiles[path];
+    if (!load) throw new Error(`Screenshot not found: src/assets/projects/${project.id}/${shot.file}`);
+    const image = await getImage({ src: (await load()).default, width: 1280, format: "webp", quality: 80 });
+    (shots[project.id] ??= []).push({
+      src: image.src,
+      width: Number(image.attributes.width),
+      height: Number(image.attributes.height),
+      file: shot.file,
+      alt: shot.alt,
+    });
+  }
+}
+---
+
+<div class="window">
+  <div class="title-bar">
+    <span class="dots">
+      <button type="button" class="dot dot-close" aria-label={t.desktop.close} title={t.desktop.close}>×</button>
+      <button type="button" class="dot dot-min" aria-label={t.desktop.minimize} title={t.desktop.minimize}>_</button>
+      <i class="dot" aria-hidden="true"></i>
+    </span>
+    <span class="title">{profile.nick}@portfolio: ~</span>
+    <nav class="langs" aria-label={t.terminal.languageLabel}>
+      {
+        (Object.keys(languages) as Lang[]).map((l) => (
+          <a href={pathFor(l)} hreflang={l} lang={l} title={languages[l]} aria-current={l === lang ? "page" : undefined}>
+            {l.toUpperCase()}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+
+  <div class="split-body">
+    <div id="screen">
+      <div id="log">
+        <div id="intro"></div>
+        <div id="output"></div>
+      </div>
+      <div class="line">
+        <span><span class="p">{profile.nick}@portfolio</span>:<span class="b">~</span>$</span>
+        <input id="prompt-input" autocomplete="off" spellcheck="false" autofocus aria-label={t.terminal.inputLabel} />
+      </div>
+
+      <!-- Fallback without JavaScript (also what search engines read) -->
+      <noscript>
+        <div class="block">
+          <p><span class="a">{profile.nick}</span> ({profile.name}) · {profile.role}</p>
+          <br />
+          {
+            projects.map((p) => (
+              <p>
+                <span class="b">{p.name}</span> <span class="d"># {p.summary[lang]}</span>
+              </p>
+            ))
+          }
+        </div>
+      </noscript>
+    </div>
+
+    <!-- Screenshots panel: opens on `cat <project>`, filled in by scripts/shots-panel.ts -->
+    <aside id="shots-panel" class="panel" inert>
+      <div class="pane-bar">
+        <span class="pane-path"></span>
+        <button class="pane-btn pane-close" type="button">✕</button>
+      </div>
+      <div class="pane-content"></div>
+    </aside>
+  </div>
+</div>
+
+<!-- Shown when the terminal is closed or minimised (scripts/desktop.ts) -->
+<div id="desktop" hidden>
+  <button type="button" class="desk-icon" hidden>
+    <span class="desk-icon-img" aria-hidden="true">&gt;_</span>
+    <span class="desk-icon-label">{t.desktop.icon}</span>
+  </button>
+  <div class="duck-wrap">
+    <p class="bubble" aria-live="polite"></p>
+    <button type="button" class="duck" aria-label={t.desktop.duck} title={t.desktop.duck} set:html={duckSvg()} />
+  </div>
+  <p class="desk-msg"></p>
+  <p class="desk-hint"></p>
+  <div class="dock" hidden>
+    <button type="button" class="dock-item">{profile.nick}@portfolio: ~</button>
+  </div>
+</div>
+
+<script type="application/json" id="shots-data" set:html={JSON.stringify(shots)} />
+
+<script>
+  import { startTerminal } from "../scripts/terminal";
+  startTerminal();
+</script>
+
+<!-- Global because the terminal output is injected at runtime and would miss Astro's scoped classes -->
+<style is:global>
+  .window {
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    max-width: 900px;
+    margin: 24px auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    /* clip (not hidden) so the sticky screenshot keeps working */
+    overflow: clip;
+    min-height: calc(100% - 48px);
+    display: flex;
+    flex-direction: column;
+    transition: max-width 0.45s var(--ease);
+  }
+  .window.split {
+    max-width: 1400px;
+  }
+  .window {
+    position: relative;
+    z-index: 1;
+  }
+  .window.closing { animation: win-close 0.22s ease-in forwards; }
+  .window.opening { animation: win-close 0.3s var(--ease) reverse; }
+  .window.minimizing { animation: win-minimize 0.4s ease-in forwards; transform-origin: 50% 100%; }
+  .window.restoring { animation: win-minimize 0.4s var(--ease) reverse; transform-origin: 50% 100%; }
+  @keyframes win-close {
+    to { opacity: 0; transform: scale(0.92); }
+  }
+  @keyframes win-minimize {
+    to { opacity: 0; transform: translateY(70vh) scale(0.15); }
+  }
+
+  /* ---------- desktop behind the terminal (closed / minimised) ---------- */
+  #desktop {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    text-align: center;
+    animation: fade-in 0.4s ease;
+  }
+  .duck-wrap {
+    position: relative;
+    width: min(340px, 72vw);
+  }
+  .duck {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+  .duck svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 8px rgb(74 222 128 / 0.35));
+  }
+  .duck .cells { fill: var(--green); }
+  .duck .beak { fill: var(--amber); }
+  .duck .shadow {
+    fill: none;
+    stroke: #2f7a4b;
+    stroke-width: 0.28;
+    stroke-linecap: square;
+  }
+  .duck:focus-visible {
+    outline: 1px dashed var(--dim);
+    outline-offset: 6px;
+  }
+  .duck.hop { animation: hop 0.45s ease; }
+  @keyframes hop {
+    30% { transform: translateY(-14px) rotate(-4deg); }
+    60% { transform: none; }
+    80% { transform: translateY(-4px); }
+  }
+  .bubble {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 12px);
+    width: max-content;
+    max-width: min(320px, 80vw);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bar);
+    color: var(--fg);
+    font-size: 13px;
+    text-align: left;
+  }
+  .bubble::after {
+    content: "";
+    position: absolute;
+    left: 24px;
+    top: 100%;
+    margin-top: -5px;
+    width: 9px;
+    height: 9px;
+    background: var(--bar);
+    border: solid var(--border);
+    border-width: 0 1px 1px 0;
+    transform: rotate(45deg);
+  }
+  .bubble:empty { visibility: hidden; }
+  .bubble.pop { animation: fade-in 0.25s ease; }
+  .desk-msg {
+    margin-top: 18px;
+    color: var(--fg);
+  }
+  .desk-hint {
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .desk-icon {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--fg);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .desk-icon:hover,
+  .desk-icon:focus-visible {
+    border-color: var(--border);
+    background: rgb(255 255 255 / 0.03);
+    outline: none;
+  }
+  .desk-icon-img {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bar);
+    color: var(--green);
+    font-weight: 700;
+  }
+  .dock {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bar);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.5);
+  }
+  .dock-item {
+    font: inherit;
+    font-size: 12px;
+    color: var(--fg);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .dock-item::before {
+    content: "● ";
+    color: var(--green);
+  }
+  .dock-item:hover,
+  .dock-item:focus-visible {
+    border-color: var(--dim);
+    outline: none;
+  }
+
+  /* ---------- tmux-style split with the screenshots panel ---------- */
+  .split-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 0fr;
+    transition: grid-template-columns 0.45s var(--ease);
+  }
+  .window.split .split-body {
+    grid-template-columns: 1fr 1fr;
+  }
+  .panel {
+    min-width: 0;
+    overflow: hidden;
+    border-left: 1px solid transparent;
+    transition: border-color 0.3s;
+  }
+  .window.split .panel {
+    border-left-color: var(--border);
+  }
+  /* fixed width while the column animates, so the content doesn't squash */
+  .pane-bar,
+  .pane-content {
+    min-width: 420px;
+  }
+  .pane-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+    background: var(--bar);
+  }
+  .pane-path::before {
+    content: "● ";
+    color: var(--green);
+  }
+  .pane-content {
+    position: sticky;
+    top: 0;
+    padding: 16px;
+  }
+  .pane-btn {
+    font: inherit;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    border-radius: 5px;
+    padding: 0 7px;
+    cursor: pointer;
+  }
+  .pane-btn:hover {
+    color: var(--fg);
+    border-color: var(--dim);
+  }
+  .pane-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .pane-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .pane-dots button {
+    width: 18px;
+    height: 6px;
+    border: 0;
+    border-radius: 3px;
+    background: var(--border);
+    cursor: pointer;
+  }
+  .pane-dots button.on {
+    background: var(--green);
+  }
+  .pane-file {
+    margin-left: auto;
+    color: var(--fg);
+  }
+  .pane-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--dim);
+  }
+  .fade {
+    animation: fade-in 0.35s ease;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  /* green phosphor screenshot: real colours on hover (or tap on touch screens) */
+  .shot {
+    position: relative;
+    margin: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #1f3d2a;
+    background: #050705;
+    box-shadow: 0 0 24px rgb(74 222 128 / 0.12);
+    cursor: crosshair;
+  }
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: grayscale(1) sepia(1) hue-rotate(75deg) saturate(2.6) brightness(0.8) contrast(1.15);
+    transition: filter 0.35s;
+  }
+  .shot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgb(0 0 0 / 0.28) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.45));
+    transition: opacity 0.35s;
+  }
+  .shot.color img {
+    filter: none;
+  }
+  .shot.color::after {
+    opacity: 0;
+  }
+  @media (hover: hover) {
+    .shot:hover img {
+      filter: none;
+    }
+    .shot:hover::after {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #desktop {
+      animation: none;
+    }
+    .window,
+    .split-body,
+    .shot img,
+    .shot::after {
+      transition: none;
+    }
+    .fade {
+      animation: none;
+    }
+  }
+  .title-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bar);
+    border-bottom: 1px solid var(--border);
+    color: var(--dim);
+    font-size: 12px;
+  }
+  .dots {
+    display: flex;
+    gap: 8px;
+  }
+  .dot {
+    display: grid;
+    place-items: center;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    font: 700 10px/1 "JetBrains Mono", monospace;
+    color: rgb(0 0 0 / 0.55);
+  }
+  button.dot {
+    cursor: pointer;
+  }
+  button.dot:hover {
+    color: rgb(0 0 0 / 0.85);
+    filter: brightness(1.12);
+  }
+  button.dot:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+  }
+  .dot-close { background: #f87171; }
+  .dot-min { background: #fbbf24; line-height: 0; padding-bottom: 6px; }
+  .dot:nth-child(3) { background: #4ade80; }
+  .langs {
+    justify-self: end;
+    display: flex;
+    gap: 4px;
+  }
+  .langs a {
+    color: var(--dim);
+    text-decoration: none;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  .langs a:hover {
+    color: var(--fg);
+  }
+  .langs a[aria-current="page"] {
+    color: var(--bg);
+    background: var(--green);
+  }
+  #screen {
+    padding: 20px;
+    flex: 1;
+    overflow-wrap: anywhere;
+    cursor: text;
+  }
+  /* keep their blocks' margins inside, so they fold to exactly 0 when removed (terminal.ts `fold`) */
+  .intro-whoami,
+  .out {
+    display: flow-root;
+  }
+  #log pre {
+    font: inherit;
+    white-space: pre-wrap;
+  }
+  .p { color: var(--green); }
+  .d { color: var(--dim); }
+  .a { color: var(--amber); }
+  .b { color: var(--blue); }
+  .k { color: var(--pink); }
+  .ascii {
+    max-width: 440px;
+    margin: 4px 0 16px;
+  }
+  .ascii svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 6px rgb(74 222 128 / 0.35));
+  }
+  .ascii .cells {
+    fill: var(--green);
+  }
+  .ascii .shadow {
+    fill: none;
+    stroke: #2f7a4b;
+    stroke-width: 0.28;
+  }
+  .ascii.narrow {
+    display: none;
+  }
+  button.cmd {
+    font: inherit;
+    background: none;
+    border: 0;
+    color: var(--blue);
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+  }
+  button.cmd:hover {
+    color: var(--amber);
+  }
+  .line {
+    display: flex;
+    gap: 8px;
+  }
+  #prompt-input {
+    flex: 1;
+    min-width: 0;
+    background: none;
+    border: 0;
+    outline: 0;
+    color: var(--fg);
+    font: inherit;
+    caret-color: var(--green);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2px 16px;
+  }
+  .block {
+    margin: 4px 0 14px;
+  }
+  /* narrow screens: no room to split, the panel slides up as a bottom sheet */
+  @media (max-width: 860px) {
+    .window.split {
+      max-width: 900px;
+    }
+    .split-body,
+    .window.split .split-body {
+      grid-template-columns: 1fr;
+    }
+    .panel {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 10;
+      max-height: 75vh;
+      overflow-y: auto;
+      background: var(--bg);
+      border: 0;
+      border-top: 1px solid var(--border);
+      border-radius: 14px 14px 0 0;
+      box-shadow: 0 -20px 50px rgb(0 0 0 / 0.6);
+      transform: translateY(105%);
+      transition: transform 0.4s var(--ease);
+    }
+    .window.split .panel {
+      transform: none;
+    }
+    .pane-bar,
+    .pane-content {
+      min-width: 0;
+    }
+    .pane-content {
+      position: static;
+    }
+  }
+  @media (max-width: 700px) {
+    .ascii.wide { display: none; }
+    .ascii.narrow { display: block; }
+  }
+  @media (max-width: 600px) {
+    .window {
+      margin: 0;
+      border-radius: 0;
+      border: 0;
+      min-height: 100%;
+    }
+  }
+</style>

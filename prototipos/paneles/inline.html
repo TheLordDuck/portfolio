@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel · En la salida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  .thumbs { white-space: normal; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+  .thumb { cursor: zoom-in; transition: transform 0.2s; }
+  .thumb:hover { transform: translateY(-2px); }
+  .thumb .shot.ascii { cursor: zoom-in; }
+  .thumb .ascii-hint, .thumb .load-text { display: none; }
+  .thumb-caption { font-size: 11px; color: var(--dim); margin-top: 4px; }
+
+  /* lightbox: an expanded viewer that looks like another terminal window */
+  .lightbox {
+    position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px;
+    background: rgb(5 7 6 / 0.82); backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+  }
+  .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox .window { width: min(1000px, 100%); min-height: 0; margin: 0; transform: scale(0.96); transition: transform 0.25s; }
+  .lightbox.open .window { transform: none; }
+  .lightbox .title-bar .icon-btn { margin-left: auto; }
+  .lightbox-body { padding: 14px; }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="title-bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">thelordduck22@portfolio: ~</span></div>
+  <div class="screen"></div>
+</div>
+
+<div class="lightbox" aria-hidden="true">
+  <div class="window">
+    <div class="title-bar"><span class="dots"><i></i><i></i><i></i></span><span class="lb-title" style="margin-left:8px"></span><button class="icon-btn" data-close aria-label="Close">✕</button></div>
+    <div class="lightbox-body"></div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  const lightbox = document.querySelector(".lightbox");
+  const lbBody = lightbox.querySelector(".lightbox-body");
+  let gallery = null;
+  let lastProject = null;
+  let thumbCleanups = [];
+
+  function openLightbox(project, index) {
+    gallery?.destroy();
+    lightbox.querySelector(".lb-title").textContent = `~/projects/${project.id}/shots`;
+    gallery = createGallery(lbBody, project, getStyle(), index);
+    lightbox.classList.add("open");
+    lightbox.setAttribute("aria-hidden", "false");
+  }
+  function closeLightbox() {
+    lightbox.classList.remove("open");
+    lightbox.setAttribute("aria-hidden", "true");
+    gallery?.destroy();
+    gallery = null;
+  }
+  lightbox.addEventListener("click", (e) => {
+    if (e.target === lightbox || e.target.closest("[data-close]")) closeLightbox();
+  });
+
+  function renderThumbs(output, project) {
+    thumbCleanups.forEach((fn) => fn());
+    thumbCleanups = [];
+    const box = output.querySelector(".thumbs");
+    if (!box || !project) return;
+    project.shots.forEach((shot, i) => {
+      const thumb = document.createElement("div");
+      thumb.className = "thumb";
+      thumb.innerHTML = `<div class="stage"></div><div class="thumb-caption">${shot.file}</div>`;
+      box.appendChild(thumb);
+      thumbCleanups.push(renderShot(thumb.querySelector(".stage"), project, shot, getStyle()));
+      thumb.addEventListener("click", (e) => { e.stopPropagation(); openLightbox(project, i); });
+    });
+  }
+
+  const output = () => document.querySelector(".output");
+
+  startTerminal(document.querySelector(".screen"), {
+    catExtra: (p) => p.shots.length ? `<div class="thumbs"></div>` : `\n\n<span class="d">no screenshots yet</span>`,
+    afterOutput: (out, project) => { lastProject = project; renderThumbs(out, project); },
+    onClose: closeLightbox,
+    onEscape: closeLightbox,
+    onArrow: (dir) => gallery && (dir < 0 ? gallery.prev() : gallery.next()),
+  });
+
+  mountToolbar(() => {
+    if (lastProject) renderThumbs(output(), lastProject);
+  });
+</script>
+</body>
+</html>

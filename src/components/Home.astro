@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Terminal from "./Terminal.astro";
+import { profile } from "../data/projects";
+import { fmt, ui, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const { meta } = ui[lang];
+const vars = { nick: profile.nick, name: profile.name, role: profile.role };
+---
+
+<Layout lang={lang} title={fmt(meta.title, vars)} description={fmt(meta.description, vars)}>
+  <Terminal lang={lang} />
+</Layout>

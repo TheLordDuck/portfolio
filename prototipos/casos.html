@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flavio — Casos de estudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fbfaf8; --ink:#1c1917; --muted:#78716c; --line:#e7e5e4; --soft:#f3f1ed; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#141210; --ink:#f5f5f4; --muted:#a8a29e; --line:#2a2623; --soft:#1d1a17; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--ink); font:400 16px/1.65 Inter, system-ui, sans-serif; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 24px; }
+  nav { position:sticky; top:0; z-index:5; backdrop-filter:blur(10px); background:color-mix(in srgb, var(--bg) 80%, transparent); border-bottom:1px solid var(--line); }
+  nav .wrap { display:flex; justify-content:space-between; align-items:center; height:60px; }
+  nav b { font-family:Fraunces, serif; font-size:20px; }
+  nav a { color:var(--muted); text-decoration:none; font-size:14px; margin-left:22px; }
+  nav a:hover { color:var(--ink); }
+  .hero { padding:110px 0 70px; max-width:720px; }
+  .eyebrow { font-size:13px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--c, var(--muted)); }
+  .hero h1 { font:500 clamp(38px, 6vw, 64px)/1.05 Fraunces, serif; letter-spacing:-.02em; margin:16px 0 20px; }
+  .hero p { color:var(--muted); font-size:19px; }
+  .case { padding:80px 0; border-top:1px solid var(--line); }
+  .shot { --c:#0d9488; border-radius:20px; aspect-ratio:16/8; background:linear-gradient(135deg, color-mix(in srgb, var(--c) 18%, var(--soft)), var(--soft)); border:1px solid var(--line); display:grid; place-items:center; position:relative; overflow:hidden; }
+  .shot .browser { width:78%; height:78%; margin-top:10%; background:var(--bg); border-radius:12px 12px 0 0; box-shadow:0 24px 60px -20px rgb(0 0 0 / .35); padding:36px 22px 0; position:relative; display:grid; grid-template-columns:110px 1fr; gap:18px; }
+  .browser::before { content:"● ● ●"; position:absolute; top:10px; left:14px; font-size:9px; letter-spacing:2px; color:var(--line); }
+  .side i, .main i { display:block; height:10px; border-radius:5px; background:var(--soft); margin-bottom:10px; }
+  .side i:first-child { background:var(--c); width:70%; }
+  .main .kpis { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:14px; }
+  .main .kpis div { height:54px; border-radius:10px; background:var(--soft); border-left:3px solid var(--c); }
+  .label { position:absolute; bottom:16px; right:20px; font-size:12px; color:var(--muted); }
+  .head { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin:40px 0 32px; align-items:end; }
+  .head h2 { font:500 clamp(32px, 4.5vw, 46px)/1.05 Fraunces, serif; letter-spacing:-.02em; margin-top:8px; }
+  .head p { color:var(--muted); font-size:18px; }
+  .psr { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  .psr div { background:var(--soft); border-radius:16px; padding:22px; }
+  .psr h4 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:8px; }
+  .todo { color:var(--muted); font-style:italic; border-bottom:1px dashed var(--muted); }
+  .meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; align-items:center; }
+  .meta span { font-size:13px; padding:4px 12px; border-radius:99px; border:1px solid var(--line); }
+  .meta a { margin-left:auto; color:var(--ink); font-weight:600; text-decoration:none; }
+  .more { padding:80px 0; border-top:1px solid var(--line); }
+  .more h2 { font:500 34px/1.1 Fraunces, serif; margin-bottom:28px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px; }
+  .cards article { border:1px solid var(--line); border-radius:16px; padding:20px; transition:border-color .2s, transform .2s; }
+  .cards article:hover { border-color:var(--ink); transform:translateY(-2px); }
+  .cards h3 { font:500 20px/1.2 Fraunces, serif; margin:6px 0 6px; }
+  .cards p { color:var(--muted); font-size:14px; }
+  footer { padding:90px 0 60px; text-align:center; border-top:1px solid var(--line); }
+  footer h2 { font:500 clamp(30px, 5vw, 48px)/1.1 Fraunces, serif; margin-bottom:22px; }
+  .btn { display:inline-block; padding:13px 26px; border-radius:99px; background:var(--ink); color:var(--bg); text-decoration:none; font-weight:600; }
+  @media (max-width:760px) { .head, .psr { grid-template-columns:1fr; gap:14px; } .shot .browser { grid-template-columns:1fr; } .side { display:none; } nav a:not(:last-child) { display:none; } }
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>Flavio</b><div><a href="#casos">Casos</a><a href="#mas">Más proyectos</a><a href="#contacto">Contacto</a></div></div></nav>
+<div class="wrap">
+  <section class="hero">
+    <span class="eyebrow">Portfolio · 2026</span>
+    <h1>Software a medida que quita trabajo de encima.</h1>
+    <p>Tres proyectos contados de principio a fin, y debajo todo lo demás que he ido construyendo.</p>
+  </section>
+  <div id="casos"></div>
+  <section class="more" id="mas"><h2>Más proyectos</h2><div class="cards" id="cards"></div></section>
+</div>
+<footer id="contacto"><div class="wrap"><h2>¿Tienes algo en mente?</h2><a class="btn" href="mailto:hola@ejemplo.com">Escríbeme</a></div></footer>
+<script src="proyectos.js"></script>
+<script>
+  // Problema / solución / resultado: rellena con datos reales. Lo marcado en cursiva es un hueco.
+  const casos = {
+    "bri-llar": { color:"#0d9488", cliente:"Empresa de limpieza",
+      problema:"Clientes, albaranes, facturas y horas repartidos entre papeles y hojas de cálculo.",
+      solucion:"Una app interna con facturas y presupuestos en PDF, envío por email y hojas de horas por centro.",
+      resultado:'<span class="todo">Pon aquí un dato real: horas ahorradas, facturas al mes…</span>' },
+    "personand": { color:"#2563eb", cliente:"Gestorías de Andorra",
+      problema:"La gestión laboral andorrana tiene sus propias reglas y pocas herramientas pensadas para ella.",
+      solucion:"Trabajadores, contratos, altas y bajas, horas y vacaciones en un solo sitio; nóminas en camino.",
+      resultado:'<span class="todo">Estado actual, primeros usuarios…</span>' },
+    "endstep-arena": { color:"#7c3aed", cliente:"Proyecto personal",
+      problema:"Jugar a Magic en endstep.cc funciona, pero la interfaz se queda corta comparada con Arena.",
+      solucion:"Una extensión que dibuja su propio tablero encima y juega por el socket de Endstep, sin tocar el servidor.",
+      resultado:'<span class="todo">Usuarios, partidas jugadas, feedback…</span>' },
+  };
+  document.getElementById("casos").innerHTML = PROYECTOS.filter(p => casos[p.id]).map(p => {
+    const c = casos[p.id];
+    return `<section class="case">
+      <div class="shot" style="--c:${c.color}"><div class="browser" style="--c:${c.color}">
+        <div class="side"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="main"><div class="kpis"><div></div><div></div><div></div></div><i></i><i style="width:80%"></i><i></i><i style="width:60%"></i></div>
+      </div><span class="label">Sustituir por captura real</span></div>
+      <div class="head"><div><span class="eyebrow" style="--c:${c.color}">${c.cliente}</span><h2>${p.nombre}</h2></div><p>${p.corto}.</p></div>
+      <div class="psr">
+        <div><h4>Problema</h4>${c.problema}</div>
+        <div><h4>Solución</h4>${c.solucion}</div>
+        <div><h4>Resultado</h4>${c.resultado}</div>
+      </div>
+      <div class="meta">${p.stack.map(s => `<span>${s}</span>`).join("")}<a href="#">Ver caso completo →</a></div>
+    </section>`;
+  }).join("");
+  document.getElementById("cards").innerHTML = PROYECTOS.filter(p => !casos[p.id]).map(p => `
+    <article><span class="eyebrow">${p.categoria} · ${p.año}</span><h3>${p.nombre}</h3><p>${p.corto}</p></article>`).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+---
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/700.css";
+import "../styles/global.css";
+import { defaultLang, languages, pathFor, type Lang } from "../i18n/ui";
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+}
+
+const { lang, title, description } = Astro.props;
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0b0e0c" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {(Object.keys(languages) as Lang[]).map((l) => <link rel="alternate" hreflang={l} href={pathFor(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={pathFor(defaultLang)} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

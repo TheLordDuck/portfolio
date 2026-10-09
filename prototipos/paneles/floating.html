@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel · Ventana flotante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* the terminal slides left to make room for the viewer on wide screens */
+  .window { transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @media (min-width: 1400px) {
+    /* push the terminal against the left edge and give the viewer the remaining space */
+    body.viewer-open .window { transform: translateX(calc(-50vw + 450px + 24px)); }
+    body .viewer { width: min(640px, calc(100vw - 900px - 72px)); }
+  }
+  .viewer {
+    position: fixed; top: 90px; right: 24px; z-index: 30;
+    width: min(560px, calc(100vw - 48px));
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    background: var(--bg); box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(74 222 128 / 0.06);
+    transform: translateX(calc(100% + 40px)) rotate(2deg); opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
+  }
+  .viewer.open { transform: none; opacity: 1; }
+  .viewer.dragging { transition: none; }
+  .viewer .title-bar { cursor: grab; user-select: none; }
+  .viewer.dragging .title-bar { cursor: grabbing; }
+  .viewer .title-bar .icon-btn { margin-left: auto; }
+  .viewer-body { padding: 14px; }
+  .fade { animation: fade-in 0.35s ease; }
+  @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } }
+  @media (max-width: 700px) {
+    .viewer { top: auto; bottom: 0; right: 0; left: 0; width: 100%; border-radius: 14px 14px 0 0; transform: translateY(105%); }
+    .viewer .title-bar { cursor: default; }
+  }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="title-bar"><span class="dots"><i></i><i></i><i></i></span><span class="title">thelordduck22@portfolio: ~</span></div>
+  <div class="screen"></div>
+</div>
+
+<div class="viewer" aria-hidden="true">
+  <div class="title-bar">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span class="viewer-title" style="margin-left:8px"></span>
+    <button class="icon-btn" data-close aria-label="Close">✕</button>
+  </div>
+  <div class="viewer-body"></div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  const viewer = document.querySelector(".viewer");
+  const body = viewer.querySelector(".viewer-body");
+  let gallery = null;
+  let current = null;
+
+  function open(project) {
+    gallery?.destroy();
+    current = project;
+    viewer.querySelector(".viewer-title").textContent = `feh ~/projects/${project.id}/shots`;
+    body.classList.remove("fade");
+    void body.offsetWidth;
+    body.classList.add("fade");
+    gallery = createGallery(body, project);
+    viewer.classList.add("open");
+    viewer.setAttribute("aria-hidden", "false");
+    document.body.classList.add("viewer-open");
+  }
+
+  function close() {
+    viewer.classList.remove("open");
+    viewer.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("viewer-open");
+    current = null;
+    // forget any drag offset so it slides in from the right again next time
+    setTimeout(() => { if (!current) viewer.style.left = viewer.style.top = viewer.style.right = ""; }, 450);
+  }
+
+  viewer.querySelector("[data-close]").addEventListener("click", (e) => { e.stopPropagation(); close(); });
+
+  // drag the viewer by its title bar (desktop only)
+  const handle = viewer.querySelector(".title-bar");
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button") || matchMedia("(max-width: 700px)").matches) return;
+    const rect = viewer.getBoundingClientRect();
+    const dx = e.clientX - rect.left, dy = e.clientY - rect.top;
+    viewer.classList.add("dragging");
+    handle.setPointerCapture(e.pointerId);
+    const move = (ev) => {
+      viewer.style.right = "auto";
+      viewer.style.left = `${Math.max(0, Math.min(innerWidth - rect.width, ev.clientX - dx))}px`;
+      viewer.style.top = `${Math.max(0, Math.min(innerHeight - 60, ev.clientY - dy))}px`;
+    };
+    const up = () => {
+      viewer.classList.remove("dragging");
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+  });
+
+  startTerminal(document.querySelector(".screen"), {
+    onCat: open,
+    onClose: close,
+    onOther: close,
+    onEscape: close,
+    onArrow: (dir) => current && (dir < 0 ? gallery?.prev() : gallery?.next()),
+  });
+
+  mountToolbar((style) => {
+    if (!current) return;
+    gallery?.destroy();
+    gallery = createGallery(body, current, style);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipos del panel de imágenes</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 15px/1.55 system-ui, sans-serif; background: #0b0e0c; color: #c9d1c8; padding: 48px 16px; }
+  main { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 26px; color: #fff; margin-bottom: 6px; }
+  h2 { font-size: 15px; color: #fff; margin: 28px 0 10px; }
+  p { color: #8a958d; margin-bottom: 10px; }
+  a.card { display: block; background: #111613; border: 1px solid #1f2722; border-radius: 12px; padding: 16px 18px; margin-bottom: 10px; color: inherit; text-decoration: none; }
+  a.card:hover { border-color: #4ade80; }
+  a.card b { display: block; color: #4ade80; font-size: 16px; }
+  ul { padding-left: 20px; color: #8a958d; }
+  li { margin-bottom: 4px; }
+  li b { color: #c9d1c8; }
+  code { color: #fbbf24; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Panel de imágenes · prototipos</h1>
+  <p>Cuatro formas de enseñar las capturas. En cada una, la barra de arriba cambia el estilo de las imágenes, así que puedes probar las 16 combinaciones. Las capturas son falsas, dibujadas con canvas.</p>
+
+  <h2>Panel</h2>
+  <a class="card" href="split.html"><b>1 · Split tipo tmux</b>Al hacer <code>cat</code>, la ventana se ensancha y se divide: la info a la izquierda y las capturas a la derecha. En móvil sale como hoja desde abajo.</a>
+  <a class="card" href="floating.html"><b>2 · Ventana flotante</b>Una segunda ventana tipo visor (<code>feh</code>) entra deslizándose por la derecha y la terminal se aparta. Se puede arrastrar por la barra.</a>
+  <a class="card" href="inline.html"><b>3 · En la salida</b>Las miniaturas salen dentro de la salida de <code>cat</code>; al hacer clic se abren en grande.</a>
+  <a class="card" href="open.html"><b>4 · Comando open</b><code>cat</code> solo muestra texto y sugiere <code>open &lt;proyecto&gt;</code>, que abre el panel split.</a>
+
+  <h2>Estilos de imagen (barra superior)</h2>
+  <ul>
+    <li><b>Fósforo verde</b>: tonos verdes con líneas de escaneo; a todo color al pasar el ratón.</li>
+    <li><b>Carga línea a línea</b>: la imagen aparece por franjas con una barra <code>[#####.....] 52%</code>.</li>
+    <li><b>Arte ASCII</b>: la captura convertida en caracteres; clic para ver la real.</li>
+    <li><b>Color real con marco</b>: tal cual, con una barra de ventana.</li>
+  </ul>
+
+  <h2>Para probar</h2>
+  <ul>
+    <li><code>cat bri-llar</code>, <code>cat endstep-arena</code>, <code>cat godot</code>… (<code>ls</code> muestra cuántas capturas tiene cada uno)</li>
+    <li><code>cat homelab</code>: proyecto sin capturas</li>
+    <li>←/→ cambia de imagen · Esc, ✕, <code>close</code> u otro comando cierran el panel</li>
+  </ul>
+</main>
+</body>
+</html>

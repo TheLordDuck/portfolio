@@ -46,6 +46,7 @@ const en = {
     commandNotFound: "{name}: command not found. Type {help}",
     projectNotFound: "cat: {id}: no such project. Try {ls}",
     sudo: "nice try 😏",
+    nothingToClose: "close: no panel to close",
     stackLabel: "stack:",
     lang: {
       current: "Current language: {lang}. Available: {list}",
@@ -130,6 +131,7 @@ const es: UI = {
     commandNotFound: "{name}: comando no encontrado. Escribe {help}",
     projectNotFound: "cat: {id}: no existe. Prueba {ls}",
     sudo: "buen intento 😏",
+    nothingToClose: "close: no hay ningún panel que cerrar",
     stackLabel: "stack:",
     lang: {
       current: "Idioma actual: {lang}. Disponibles: {list}",

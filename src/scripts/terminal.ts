@@ -19,7 +19,8 @@ const block = (html: string, extraClass = "") => `<div class="block ${extraClass
 /** Small "[3]" badge next to projects that have screenshots. */
 const shotCount = (p: Project) => (p.shots?.length ? ` <span class="d">[${p.shots.length}]</span>` : "");
 
-function createCommands(lang: Lang, onLangChange: (target: Lang) => void) {
+/** `panelWasOpen` tells `close` whether there was a screenshots panel to close. */
+function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelWasOpen: () => boolean) {
   const t = ui[lang];
   const dir = `~/${t.terminal.projectsDir}`;
   const languageList = Object.keys(languages).map((l) => cmd(`lang ${l}`, l)).join(", ");
@@ -135,8 +136,9 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void) {
     return block(fmt(t.terminal.lang.current, { lang, list: languageList }));
   };
 
-  // `close` only closes the screenshots panel (done in startTerminal), so it prints nothing
-  const exact: Record<string, () => string> = { help, whoami, ls, "ls -l": lsLong, tree, stack, contact, close: () => "" };
+  // `close` closes the screenshots panel (done in startTerminal); it only prints something when there was none
+  const close = () => (panelWasOpen() ? "" : block(t.terminal.nothingToClose));
+  const exact: Record<string, () => string> = { help, whoami, ls, "ls -l": lsLong, tree, stack, contact, close };
   const withArg: Record<string, (arg: string) => string> = { cat, cd: cat, lang: switchLang };
 
   return function run(line: string): string {
@@ -218,7 +220,10 @@ const langFromPath = (path: string): Lang =>
 export function startTerminal() {
   const htmlLang = document.documentElement.lang;
   let lang: Lang = isLang(htmlLang) ? htmlLang : defaultLang;
-  let run = createCommands(lang, switchTo);
+  // whether the panel was open when the last command ran (kept so a language switch re-renders it the same)
+  let panelWasOpen = false;
+  const commandsFor = (l: Lang) => createCommands(l, switchTo, () => panelWasOpen);
+  let run = commandsFor(lang);
 
   // The intro (banner + whoami + help) stays pinned at the top; every command the visitor
   // runs replaces the previous output instead of piling up below it. After the first command
@@ -242,8 +247,7 @@ export function startTerminal() {
       if (wasClosed) {
         output.innerHTML = "";
         lastLine = "";
-        whoamiRead = false;
-        renderIntro();
+        playIntro();
       }
       input.focus({ preventScroll: true });
     },
@@ -315,6 +319,7 @@ export function startTerminal() {
     }
     lastLine = line;
     if (line && !whoamiRead) hideWhoami();
+    panelWasOpen = shotsPanel.isOpen();
     showOutput(clearsOutput(line) ? "" : render(line));
 
     // `cat <id>` opens the screenshots panel; any other command closes it
@@ -331,7 +336,7 @@ export function startTerminal() {
   function switchTo(target: Lang, pushHistory = true) {
     if (target === lang) return;
     lang = target;
-    run = createCommands(lang, switchTo);
+    run = commandsFor(lang);
     const t = ui[lang];
     const vars = { nick: profile.nick, name: profile.name, role: profile.role };
 
@@ -400,20 +405,30 @@ export function startTerminal() {
     }
   });
 
-  renderIntro();
+  /** Types the first command letter by letter, then shows whoami + help. Replays on reopening. */
+  let introTyping: ReturnType<typeof setInterval> | undefined;
+  let introPause: ReturnType<typeof setTimeout> | undefined;
+  function playIntro() {
+    clearInterval(introTyping);
+    clearTimeout(introPause);
+    introDone = false;
+    whoamiRead = false;
+    input.value = "";
+    renderIntro();
+    const first = "whoami";
+    let typed = 0;
+    introTyping = setInterval(() => {
+      input.value = first.slice(0, ++typed);
+      if (typed === first.length) {
+        clearInterval(introTyping);
+        introPause = setTimeout(() => {
+          input.value = "";
+          introDone = true;
+          renderIntro();
+        }, 300);
+      }
+    }, 90);
+  }
 
-  // type the first command letter by letter, then show whoami + help
-  const first = "whoami";
-  let typed = 0;
-  const timer = setInterval(() => {
-    input.value = first.slice(0, ++typed);
-    if (typed === first.length) {
-      clearInterval(timer);
-      setTimeout(() => {
-        input.value = "";
-        introDone = true;
-        renderIntro();
-      }, 300);
-    }
-  }, 90);
+  playIntro();
 }

@@ -38,7 +38,7 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelW
         helpRow(
           `cat ${h.catArg}`,
           `<span class="a">cat</span> ${escape(h.catArg)}`,
-          `${h.cat}  (${h.example} ${cmd("cat bri-llar")})`,
+          `${h.cat}  (${h.example} ${cmd("cat brillar")})`,
         ),
         helpRow("stack", cmd("stack"), h.stack),
         helpRow("contact", cmd("contact"), h.contact),
@@ -55,15 +55,22 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelW
         fmt(t.terminal.bio, { magic: `<span class="k">Magic: The Gathering</span>` }),
     );
 
+  // widest "id/ [n]" entry, so grid columns and `ls -l` comments line up with any id length
+  const idWidth = Math.max(...projects.map((p) => p.id.length + 1));
+  const badgeWidth = projects.some((p) => p.shots?.length) ? 4 : 0;
+
   const ls = () =>
-    block(projects.map((p) => `<span>${cmd(`cat ${p.id}`, `${p.id}/`)}${shotCount(p)}</span>`).join(""), "grid");
+    `<div class="block grid" style="--col: ${idWidth + badgeWidth}ch">${projects
+      .map((p) => `<span>${cmd(`cat ${p.id}`, `${p.id}/`)}${shotCount(p)}</span>`)
+      .join("")}</div>`;
 
   const lsLong = () =>
     block(
       projects
         .map((p) => {
           const meta = `drwxr-xr-x  ${p.year}  ${t.categories[p.category].padEnd(13)}`;
-          return `<span class="d">${meta}</span> ${cmd(`cat ${p.id}`, `${p.id}/`)}  <span class="d"># ${p.summary[lang]}</span>`;
+          const pad = " ".repeat(idWidth - p.id.length - 1 + 2);
+          return `<span class="d">${meta}</span> ${cmd(`cat ${p.id}`, `${p.id}/`)}${pad}<span class="d"># ${p.summary[lang]}</span>`;
         })
         .join("\n"),
     );

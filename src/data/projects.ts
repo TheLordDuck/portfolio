@@ -34,7 +34,7 @@ export const profile = {
 
 export const projects: Project[] = [
   {
-    id: "bri-llar",
+    id: "brillar",
     name: "Bri-LLAR",
     year: 2026,
     category: "clients",
@@ -59,36 +59,6 @@ export const projects: Project[] = [
       {
         file: "invoice-pdf.png",
         alt: { en: "Placeholder — PDF invoice", es: "Provisional — factura en PDF" },
-      },
-    ],
-  },
-  {
-    id: "personand",
-    name: "PersonAND",
-    year: 2026,
-    category: "clients",
-    summary: {
-      en: "HR management for Andorra, sorted",
-      es: "La gestión laboral de Andorra, en orden",
-    },
-    description: {
-      en: "HR management for agencies and companies in Andorra: workers, contracts, hires and terminations, hours, holidays and, later on, payroll.",
-      es: "Gestión laboral para gestorías y empresas de Andorra: trabajadores, contratos, altas y bajas, horas, vacaciones y, más adelante, nóminas.",
-    },
-    stack: ["Next.js", "PostgreSQL", "Docker", "Vitest"],
-    status: { en: "In development", es: "En desarrollo" },
-    shots: [
-      {
-        file: "workers.png",
-        alt: { en: "Placeholder — worker list", es: "Provisional — lista de trabajadores" },
-      },
-      {
-        file: "calendar.png",
-        alt: { en: "Placeholder — hours and holidays calendar", es: "Provisional — calendario de horas y vacaciones" },
-      },
-      {
-        file: "contract.png",
-        alt: { en: "Placeholder — contract", es: "Provisional — contrato" },
       },
     ],
   },
@@ -123,53 +93,23 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "construccions-mouta",
-    name: "Construccions Mouta",
-    year: 2025,
-    category: "clients",
+    id: "los-cubes-hermanos",
+    name: "Los Cubes Hermanos",
+    year: 2024,
+    category: "magic",
     summary: {
-      en: "PDF invoicing for a construction company",
-      es: "Facturación en PDF para una constructora",
+      en: "Magic cube collection and draft league",
+      es: "Colección de cubos de Magic y liga de draft",
     },
     description: {
-      en: "Generates PDF invoices from the services purchased and emails them to customers, with scheduled jobs.",
-      es: "Genera facturas en PDF a partir de los servicios contratados y las envía por email a los clientes, con tareas programadas.",
+      en: "Manages a collection of Magic cubes and battleboxes, with archetypes and lists pulled live from CubeCobra, plus a draft league with seasons, matchdays and automatic standings. Photos of decklists are transcribed with Claude.",
+      es: "Gestiona una colección de cubos y battleboxes de Magic, con arquetipos y listas sacadas en directo de CubeCobra, y una liga de draft con temporadas, jornadas y clasificación automática. Las fotos de listas de mazos se transcriben con Claude.",
     },
-    stack: ["Next.js", "Prisma", "pdf-lib", "node-cron"],
+    stack: ["Next.js", "Prisma", "PostgreSQL", "Anthropic API"],
   },
   {
-    id: "orbit",
-    name: "Orbit",
-    year: 2026,
-    category: "clients",
-    summary: {
-      en: "Aubity's internal operating system",
-      es: "Sistema operativo interno de Aubity",
-    },
-    description: {
-      en: "Private tool for Aubity's partners: what needs doing, who's doing it, customers, leads, active projects, decisions, money and documents, all in one place.",
-      es: "Herramienta privada para los socios de Aubity: qué hay que hacer, quién lo hace, clientes, oportunidades, proyectos activos, decisiones, dinero y documentos, todo en un sitio.",
-    },
-    stack: ["Next.js", "Supabase", "Vitest"],
-  },
-  {
-    id: "aubity",
-    name: "Aubity",
-    year: 2026,
-    category: "clients",
-    summary: {
-      en: "Landing page for aubity.es",
-      es: "Landing de aubity.es",
-    },
-    description: {
-      en: "Migration of a static HTML/CSS/JS site to Next.js, keeping its design and behaviour. Available in Catalan, Spanish and English.",
-      es: "Migración de una web estática HTML/CSS/JS a Next.js conservando diseño y comportamiento. En català, español e english.",
-    },
-    stack: ["Next.js", "Tailwind v4", "TypeScript"],
-  },
-  {
-    id: "peasant-standard",
-    name: "Peasant Standard",
+    id: "standard-peasant-cube",
+    name: "Standard Peasant Cube",
     year: 2025,
     category: "magic",
     summary: {
@@ -193,8 +133,23 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: "update-inventory",
-    name: "update-inventory",
+    id: "mtg-library",
+    name: "MTG Library",
+    year: 2026,
+    category: "magic",
+    summary: {
+      en: "Self-hosted Magic collection manager",
+      es: "Gestor de colección de Magic autoalojado",
+    },
+    description: {
+      en: "Import a ManaBox export, then browse and edit the collection in a searchable table with Scryfall previews, add cards by printing, check a decklist against what you own, and keep daily backups. No database: everything lives in one CSV.",
+      es: "Importa un export de ManaBox y luego navega y edita la colección en una tabla con búsqueda y previsualizaciones de Scryfall, añade cartas por edición, comprueba un mazo contra lo que tienes y guarda copias diarias. Sin base de datos: todo vive en un CSV.",
+    },
+    stack: ["Next.js", "Scryfall API", "node-cron", "CSV"],
+  },
+  {
+    id: "cardmarket-inventory-tool",
+    name: "Cardmarket Inventory Tool",
     year: 2026,
     category: "magic",
     summary: {
@@ -223,83 +178,54 @@ export const projects: Project[] = [
     stack: ["Next.js", "Prisma", "PostgreSQL"],
   },
   {
-    id: "png-svg",
-    name: "PNG → SVG",
-    year: 2026,
-    category: "tools",
-    summary: {
-      en: "In-browser logo vectorizer",
-      es: "Vectorizador de logos en el navegador",
-    },
-    description: {
-      en: "Turns PNG logos into SVG entirely in the browser, with no server and no uploads. Presets for logos, black and white, or detailed images.",
-      es: "Convierte logos PNG a SVG 100% en el navegador, sin servidor ni subir archivos. Presets para logo, blanco y negro o detallado.",
-    },
-    stack: ["JavaScript", "Canvas"],
-    shots: [
-      {
-        file: "editor.png",
-        alt: { en: "PNG → SVG start screen with the drop zone", es: "Pantalla inicial de PNG → SVG con la zona para soltar el logo" },
-      },
-      {
-        file: "presets.png",
-        alt: { en: "Placeholder — presets", es: "Provisional — presets" },
-      },
-    ],
-  },
-  {
-    id: "homelab",
-    name: "Homelab",
-    year: 2026,
-    category: "infra",
-    summary: {
-      en: "Self-hosting through a VPS tunnel",
-      es: "Self-hosting a través de un túnel en un VPS",
-    },
-    description: {
-      en: "A public VPS running Pangolin, Gerbil and Traefik tunnels traffic to a home server running Coolify, Postgres and Newt.",
-      es: "Un VPS público con Pangolin, Gerbil y Traefik hace de túnel hacia un servidor en casa con Coolify, Postgres y Newt.",
-    },
-    stack: ["Docker", "Pangolin", "Traefik", "Coolify"],
-  },
-  {
-    id: "endstep-desktop",
-    name: "Endstep Desktop",
-    year: 2026,
-    category: "magic",
-    summary: {
-      en: "Desktop app for endstep.cc",
-      es: "App de escritorio para endstep.cc",
-    },
-    description: {
-      en: "Windows desktop wrapper with its own installer.",
-      es: "Envoltorio de escritorio para Windows con instalador propio.",
-    },
-    stack: ["Electron", "electron-builder"],
-  },
-  {
-    id: "godot",
-    name: "Fables & Mistborn",
+    id: "mistborn-typegame",
+    name: "Mistborn Typegame",
     year: 2026,
     category: "games",
     summary: {
-      en: "Game prototypes in Godot",
-      es: "Prototipos de juegos en Godot",
+      en: "Typing game set in Mistborn's Luthadel",
+      es: "Juego de mecanografía ambientado en la Luthadel de Mistborn",
     },
     description: {
-      en: "Game experiments in Godot 4: Fables, and an adaptation inspired by Mistborn.",
-      es: "Experimentos de juego en Godot 4: Fables y una adaptación inspirada en Mistborn.",
+      en: "Typing game in Godot 4: you type the story while a paper diorama of Luthadel changes around you, from ash skies and mist to the rebellion's fires, with Vin leaping across the rooftops each time you finish a sentence.",
+      es: "Juego de mecanografía en Godot 4: escribes la historia mientras un diorama de papel de Luthadel cambia a tu alrededor, del cielo de ceniza y la bruma a los fuegos de la rebelión, con Vin saltando de tejado en tejado cada vez que completas una frase.",
     },
     stack: ["Godot 4", "GDScript"],
     shots: [
-      {
-        file: "fables.png",
-        alt: { en: "Placeholder — Fables", es: "Provisional — Fables" },
-      },
       {
         file: "mistborn.png",
         alt: { en: "Placeholder — Mistborn", es: "Provisional — Mistborn" },
       },
     ],
+  },
+  {
+    id: "homeserver",
+    name: "Homeserver",
+    year: 2026,
+    category: "infra",
+    summary: {
+      en: "Home server for self-hosting",
+      es: "Servidor en casa para self-hosting",
+    },
+    description: {
+      en: "Home machine running Coolify to deploy my apps, plus Postgres and a Newt client that connects it to the VPS tunnel, so nothing on the home network has to be exposed.",
+      es: "Máquina en casa con Coolify para desplegar mis apps, más Postgres y un cliente Newt que la conecta al túnel del VPS, sin exponer nada de la red de casa.",
+    },
+    stack: ["Docker", "Coolify", "PostgreSQL", "Newt"],
+  },
+  {
+    id: "homeserver-vps",
+    name: "Homeserver VPS",
+    year: 2026,
+    category: "infra",
+    summary: {
+      en: "Public VPS that tunnels traffic home",
+      es: "VPS público que hace de túnel hacia casa",
+    },
+    description: {
+      en: "Public entry point for the homeserver: Pangolin, Gerbil and Traefik handle routing, TLS and the WireGuard tunnel to the machine at home.",
+      es: "Punto de entrada público del homeserver: Pangolin, Gerbil y Traefik se encargan del enrutado, TLS y el túnel WireGuard hacia la máquina de casa.",
+    },
+    stack: ["Docker", "Pangolin", "Traefik", "WireGuard"],
   },
 ];

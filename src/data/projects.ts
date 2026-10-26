@@ -344,8 +344,26 @@ export const projects: Project[] = [
     stack: ["Godot 4", "GDScript"],
     shots: [
       {
-        file: "mistborn.png",
-        alt: { en: "Placeholder — Mistborn", es: "Provisional — Mistborn" },
+        file: "typing.png",
+        alt: {
+          en: "Typing chapter 1 under a paper diorama of Luthadel",
+          es: "Escribiendo el capítulo 1 bajo un diorama de papel de Luthadel",
+        },
+      },
+      {
+        file: "menu.png",
+        alt: { en: "Main menu over the Luthadel skyline", es: "Menú principal sobre el horizonte de Luthadel" },
+      },
+      {
+        file: "chapters.png",
+        alt: { en: "Chapter list with reading progress", es: "Lista de capítulos con el progreso de lectura" },
+      },
+      {
+        file: "ballroom.png",
+        alt: {
+          en: "Diorama of a noble ball, with stained-glass windows and obligators",
+          es: "Diorama de un baile noble, con vidrieras y obligadores",
+        },
       },
     ],
   },
@@ -394,6 +412,26 @@ export const projects: Project[] = [
     },
     stack: ["C#", "tModLoader", ".NET 8"],
     status: { en: "v0.8", es: "v0.8" },
+    shots: [
+      {
+        file: "recipes-terminal.png",
+        alt: {
+          en: "Recipe index next to the storage terminal, with craft-from-chests buttons",
+          es: "Índice de recetas junto al terminal de almacenamiento, con botones para craftear desde los cofres",
+        },
+      },
+      {
+        file: "base.png",
+        alt: { en: "A base with crafting stations and a chest room below", es: "Una base con estaciones de crafteo y una sala de cofres debajo" },
+      },
+      {
+        file: "cables.png",
+        alt: {
+          en: "The same base with the cables linking stations and chests to the terminal",
+          es: "La misma base con los cables que unen estaciones y cofres al terminal",
+        },
+      },
+    ],
   },
   {
     id: "construccions-mouta",

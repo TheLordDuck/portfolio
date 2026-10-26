@@ -447,9 +447,26 @@ export const projects: Project[] = [
       es: "Genera versiones tipo boceto de cartas de Magic",
     },
     description: {
-      en: "Node pipeline that takes a list of card names, pulls each card from Scryfall, turns its art into a pencil-sketch look with sharp, and drives Card Conjurer with Playwright to render the final card. Handles double-faced and split cards.",
-      es: "Pipeline en Node que toma una lista de nombres de cartas, saca cada una de Scryfall, convierte su ilustración en un boceto a lápiz con sharp y maneja Card Conjurer con Playwright para renderizar la carta final. Funciona con cartas de dos caras y partidas.",
+      en: "Paste a card list and it pulls each card from Scryfall, turns its art into a sketch look, renders the text in Card Conjurer with Playwright and composites it onto a line-art frame with sharp. Every layout is supported, from sagas and battles to split and double-faced cards, and a small web portal exports the cards as a print-ready PDF at real size.",
+      es: "Pegas una lista de cartas y saca cada una de Scryfall, convierte su ilustración en un boceto, renderiza el texto en Card Conjurer con Playwright y lo compone sobre un marco de líneas con sharp. Funciona con todos los formatos, de sagas y batallas a cartas partidas y de dos caras, y un pequeño portal web exporta las cartas en un PDF listo para imprimir a tamaño real.",
     },
-    stack: ["TypeScript", "Node", "Playwright", "sharp", "Scryfall API"],
+    stack: ["TypeScript", "Node", "Playwright", "sharp", "Express", "pdf-lib", "Scryfall API"],
+    repo: "https://github.com/TheLordDuck/custom-mtg-cards",
+    shots: [
+      {
+        file: "cards.png",
+        alt: {
+          en: "Two generated cards: Flow State and Together as One",
+          es: "Dos cartas generadas: Flow State y Together as One",
+        },
+      },
+      {
+        file: "portal.png",
+        alt: {
+          en: "Web portal: card list and print settings for the PDF",
+          es: "Portal web: lista de cartas y opciones de impresión del PDF",
+        },
+      },
+    ],
   },
 ];

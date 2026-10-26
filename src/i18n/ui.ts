@@ -41,6 +41,7 @@ const en = {
     shots: {
       one: "1 screenshot on the right",
       many: "{n} screenshots on the right · ←/→ to browse",
+      reopen: "Show the screenshots",
     },
     bio: "Full-stack dev. I build business apps that real companies use,\ntools for myself, {magic} stuff and the odd game in Godot.\nI like hosting my things on my own server.",
     commandNotFound: "{name}: command not found. Type {help}",
@@ -58,8 +59,10 @@ const en = {
     close: "Close",
     previous: "Previous screenshot",
     next: "Next screenshot",
-    hint: "hover to see it in colour",
-    hintTouch: "tap to see it in colour",
+    tipColour: "hover: original colours",
+    tipEnlarge: "click: full screen",
+    hintTouch: "tap to see it full screen and in colour",
+    enlarge: "View screenshot full screen",
   },
   desktop: {
     close: "Close the terminal",
@@ -126,6 +129,7 @@ const es: UI = {
     shots: {
       one: "1 captura a la derecha",
       many: "{n} capturas a la derecha · ←/→ para pasarlas",
+      reopen: "Mostrar las capturas",
     },
     bio: "Full-stack dev. Hago apps de gestión que usan empresas reales,\nherramientas para mí, cosas de {magic} y algún juego en Godot.\nMe gusta alojar mis cosas en mi propio servidor.",
     commandNotFound: "{name}: comando no encontrado. Escribe {help}",
@@ -143,8 +147,10 @@ const es: UI = {
     close: "Cerrar",
     previous: "Captura anterior",
     next: "Captura siguiente",
-    hint: "pasa el ratón para verla en color",
-    hintTouch: "toca para verla en color",
+    tipColour: "pasa el ratón: colores originales",
+    tipEnlarge: "haz clic: pantalla completa",
+    hintTouch: "toca para verla a pantalla completa y en color",
+    enlarge: "Ver la captura a pantalla completa",
   },
   desktop: {
     close: "Cerrar la terminal",

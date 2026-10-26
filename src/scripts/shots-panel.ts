@@ -5,7 +5,8 @@ export type ShotsData = Record<string, { src: string; width: number; height: num
 
 /**
  * Side panel that splits the terminal window in two (tmux style) and shows a project's
- * screenshots with a green phosphor look; hovering (or tapping) reveals the real colours.
+ * screenshots with a green phosphor look; hovering reveals the real colours. Clicking (or
+ * tapping) a screenshot opens it full screen, in colour, in a second terminal window.
  */
 export function createShotsPanel() {
   const data: ShotsData = JSON.parse(document.getElementById("shots-data")?.textContent || "{}");
@@ -15,17 +16,24 @@ export function createShotsPanel() {
   const closeButton = panel.querySelector<HTMLButtonElement>(".pane-close")!;
   const content = panel.querySelector<HTMLElement>(".pane-content")!;
 
+  const viewer = document.getElementById("shot-viewer") as HTMLDialogElement;
+  const viewerTitle = viewer.querySelector<HTMLElement>(".viewer-title")!;
+  const viewerCount = viewer.querySelector<HTMLElement>(".viewer-count")!;
+  const viewerClose = viewer.querySelector<HTMLButtonElement>(".viewer-close")!;
+  const viewerScreen = viewer.querySelector<HTMLElement>(".viewer-screen")!;
+
   let projectId: string | null = null;
   let index = 0;
   let lang: Lang = "en";
 
   const shots = () => (projectId ? (data[projectId] ?? []) : []);
+  const shotsPath = () => `~/${ui[lang].terminal.projectsDir}/${projectId}/shots`;
 
   function render(animate: boolean) {
     const list = shots();
     const shot = list[index];
     const t = ui[lang].panel;
-    path.textContent = `~/${ui[lang].terminal.projectsDir}/${projectId}/shots`;
+    path.textContent = shotsPath();
     panel.setAttribute("aria-label", t.label);
     closeButton.setAttribute("aria-label", t.close);
     closeButton.title = t.close;
@@ -39,17 +47,49 @@ export function createShotsPanel() {
         : "";
 
     content.innerHTML = `
-      <figure class="shot">
+      <figure class="shot" role="button" tabindex="0" aria-label="${t.enlarge}">
         <img src="${shot.src}" width="${shot.width}" height="${shot.height}" alt="${shot.alt[lang]}" decoding="async" />
+        <span class="shot-tip" aria-hidden="true"><span>▸ ${t.tipColour}</span><span>▸ ${t.tipEnlarge}</span></span>
       </figure>
       <div class="pane-nav">${nav}<span class="pane-file">${shot.file}</span></div>
-      <p class="pane-hint">${matchMedia("(hover: none)").matches ? t.hintTouch : t.hint}</p>`;
+      ${matchMedia("(hover: none)").matches ? `<p class="pane-hint">${t.hintTouch}</p>` : ""}`;
 
     if (animate) {
       content.classList.remove("fade");
       void content.offsetWidth; // restart the animation
       content.classList.add("fade");
     }
+    if (viewer.open) renderViewer();
+  }
+
+  function renderViewer() {
+    const list = shots();
+    const shot = list[index];
+    const t = ui[lang].panel;
+    viewerTitle.textContent = `${shotsPath()}/${shot.file}`;
+    viewerCount.textContent = list.length > 1 ? `${index + 1}/${list.length}` : "";
+    viewer.setAttribute("aria-label", t.label);
+    viewerClose.setAttribute("aria-label", t.close);
+    viewerClose.title = t.close;
+    const arrow = (delta: number, label: string, glyph: string) =>
+      list.length > 1
+        ? `<button type="button" class="viewer-step" data-step="${delta}" aria-label="${label}">${glyph}</button>`
+        : "";
+    viewerScreen.innerHTML = `
+      ${arrow(-1, t.previous, "←")}
+      <img src="${shot.src}" width="${shot.width}" height="${shot.height}" alt="${shot.alt[lang]}" />
+      ${arrow(1, t.next, "→")}`;
+  }
+
+  function openViewer() {
+    if (!projectId || viewer.open) return;
+    renderViewer();
+    viewer.showModal();
+    viewerClose.focus({ preventScroll: true });
+  }
+
+  function closeViewer() {
+    if (viewer.open) viewer.close();
   }
 
   function open(id: string, currentLang: Lang): boolean {
@@ -58,10 +98,12 @@ export function createShotsPanel() {
       close();
       return false;
     }
-    const sameProject = id === projectId && isOpen();
+    const sameProject = id === projectId;
+    const alreadyShown = sameProject && isOpen();
     projectId = id;
+    // reopening the same project resumes at the screenshot that was showing
     if (!sameProject) index = 0;
-    render(!sameProject);
+    render(!alreadyShown);
     win.classList.add("split");
     panel.inert = false;
     // warm the cache so browsing is instant
@@ -70,6 +112,7 @@ export function createShotsPanel() {
   }
 
   function close() {
+    closeViewer();
     win.classList.remove("split");
     panel.inert = true;
   }
@@ -99,11 +142,29 @@ export function createShotsPanel() {
     else if (dot) {
       index = Number(dot.dataset.go);
       render(true);
-    } else if (target.closest(".shot")) {
-      // touch screens have no hover: tapping toggles the real colours
-      target.closest(".shot")!.classList.toggle("color");
+    } else if (target.closest(".shot")) openViewer();
+  });
+  content.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && (e.target as HTMLElement).closest(".shot")) {
+      e.preventDefault();
+      openViewer();
     }
   });
 
-  return { open, close, isOpen, step, setLang };
+  viewerClose.addEventListener("click", closeViewer);
+  viewer.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const stepButton = target.closest<HTMLElement>("[data-step]");
+    if (stepButton) step(Number(stepButton.dataset.step));
+    // a click on the backdrop lands on the <dialog> itself
+    else if (target === viewer) closeViewer();
+  });
+  viewer.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      step(e.key === "ArrowLeft" ? -1 : 1);
+    }
+  });
+
+  return { open, close, isOpen, step, setLang, viewerOpen: () => viewer.open };
 }

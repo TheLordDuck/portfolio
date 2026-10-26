@@ -20,7 +20,7 @@ const block = (html: string, extraClass = "") => `<div class="block ${extraClass
 const shotCount = (p: Project) => (p.shots?.length ? ` <span class="d">[${p.shots.length}]</span>` : "");
 
 /** `panelWasOpen` tells `close` whether there was a screenshots panel to close. */
-function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelWasOpen: () => boolean) {
+function createCommands(lang: Lang, panelWasOpen: () => boolean) {
   const t = ui[lang];
   const dir = `~/${t.terminal.projectsDir}`;
   const languageList = Object.keys(languages).map((l) => cmd(`lang ${l}`, l)).join(", ");
@@ -111,6 +111,10 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelW
     return block(lines.join("\n"));
   };
 
+  /** Opens in a new tab and is shown without the "https://". */
+  const extLink = (href: string) =>
+    `<a href="${href}" target="_blank" rel="noopener">${href.replace(/^https:\/\//, "")}</a>`;
+
   const cat = (id: string) => {
     const p = projects.find((project) => project.id === id);
     if (!p) return block(fmt(t.terminal.projectNotFound, { id: escape(id || "?"), ls: cmd("ls") }));
@@ -127,7 +131,12 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelW
         p.description[lang],
         "",
         `<span class="d">${t.terminal.stackLabel}</span> ${p.stack.map((s) => `<span class="b">${s}</span>`).join(", ")}`,
-        ...(shotCount ? ["", `<span class="p">▸</span> <span class="d">${shotsLine}</span>`] : []),
+        ...(p.url ? [`<span class="d">web:</span>   ${extLink(p.url)}`] : []),
+        ...(p.repo ? [`<span class="d">repo:</span>  ${extLink(p.repo)}`] : []),
+        // clickable, so the panel can be reopened after closing it without running `cat` again
+        ...(shotCount
+          ? ["", `<span class="p">▸</span> <button class="cmd" data-shots="${p.id}" title="${t.terminal.shots.reopen}">${shotsLine}</button>`]
+          : []),
       ].join("\n"),
     );
   };
@@ -135,11 +144,7 @@ function createCommands(lang: Lang, onLangChange: (target: Lang) => void, panelW
   const switchLang = (target: string) => {
     const list = Object.keys(languages).join(", ");
     if (target && !isLang(target)) return block(fmt(t.terminal.lang.unknown, { lang: escape(target), list }));
-    // the switch re-renders the screen (this command included) in the new language
-    if (isLang(target) && target !== lang) {
-      const next = target;
-      queueMicrotask(() => onLangChange(next));
-    }
+    // `lang <other>` never gets here: startTerminal switches in place without printing anything
     return block(fmt(t.terminal.lang.current, { lang, list: languageList }));
   };
 
@@ -229,7 +234,7 @@ export function startTerminal() {
   let lang: Lang = isLang(htmlLang) ? htmlLang : defaultLang;
   // whether the panel was open when the last command ran (kept so a language switch re-renders it the same)
   let panelWasOpen = false;
-  const commandsFor = (l: Lang) => createCommands(l, switchTo, () => panelWasOpen);
+  const commandsFor = (l: Lang) => createCommands(l, () => panelWasOpen);
   let run = commandsFor(lang);
 
   // The intro (banner + whoami + help) stays pinned at the top; every command the visitor
@@ -324,6 +329,13 @@ export function startTerminal() {
       commandHistory.push(line);
       historyIndex = commandHistory.length;
     }
+    // `lang <other>` works like the EN/ES switch: whatever is on screen (output, screenshots
+    // panel, the screenshot showing) stays and is re-typed in the new language
+    const langTarget = line.match(/^lang\s+(\S+)$/)?.[1];
+    if (langTarget && isLang(langTarget) && langTarget !== lang) {
+      switchTo(langTarget);
+      return;
+    }
     lastLine = line;
     if (line && !whoamiRead) hideWhoami();
     panelWasOpen = shotsPanel.isOpen();
@@ -376,13 +388,16 @@ export function startTerminal() {
       return;
     }
     const button = target.closest<HTMLButtonElement>("button.cmd");
-    if (button) execute(button.dataset.cmd ?? "");
-    else if (!target.closest("a, #shots-panel, #desktop, .dots") && !getSelection()?.toString()) input.focus();
+    if (button?.dataset.shots) shotsPanel.open(button.dataset.shots, lang);
+    else if (button) execute(button.dataset.cmd ?? "");
+    else if (!target.closest("a, #shots-panel, #shot-viewer, #desktop, .dots") && !getSelection()?.toString())
+      input.focus();
   });
 
-  // Esc closes the panel; ←/→ browse screenshots unless the visitor is editing a command
+  // Esc closes the panel; ←/→ browse screenshots unless the visitor is editing a command.
+  // The full-screen viewer handles its own keys (Esc closes only the viewer).
   document.addEventListener("keydown", (e) => {
-    if (!shotsPanel.isOpen()) return;
+    if (!shotsPanel.isOpen() || shotsPanel.viewerOpen()) return;
     if (e.key === "Escape") shotsPanel.close();
     const editing = document.activeElement === input && input.value !== "";
     if (!editing && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {

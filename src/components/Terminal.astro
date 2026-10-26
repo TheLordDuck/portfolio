@@ -1,4 +1,6 @@
 ---
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { getImage } from "astro:assets";
 import { profile, projects } from "../data/projects";
 import { languages, pathFor, ui, type Lang } from "../i18n/ui";
@@ -21,8 +23,15 @@ for (const project of projects) {
     const load = imageFiles[path];
     if (!load) throw new Error(`Screenshot not found: src/assets/projects/${project.id}/${shot.file}`);
     const image = await getImage({ src: (await load()).default, width: 1280, format: "webp", quality: 80 });
+    // The dev server caches /_image URLs for a year and they don't change when a file is
+    // replaced, so add the file's hash (build output names already depend on the content)
+    let src = image.src;
+    if (import.meta.env.DEV) {
+      const file = `${process.cwd()}/src/assets/projects/${project.id}/${shot.file}`;
+      src += `&v=${createHash("sha1").update(readFileSync(file)).digest("hex").slice(0, 8)}`;
+    }
     (shots[project.id] ??= []).push({
-      src: image.src,
+      src,
       width: Number(image.attributes.width),
       height: Number(image.attributes.height),
       file: shot.file,
@@ -105,6 +114,22 @@ for (const project of projects) {
     <button type="button" class="dock-item">{profile.nick}@portfolio: ~</button>
   </div>
 </div>
+
+<!-- Full-screen screenshot, opened by clicking one in the panel (scripts/shots-panel.ts) -->
+<dialog id="shot-viewer" class="viewer">
+  <div class="viewer-win">
+    <div class="title-bar">
+      <span class="dots">
+        <button type="button" class="dot dot-close viewer-close">×</button>
+        <i class="dot dot-min" aria-hidden="true"></i>
+        <i class="dot" aria-hidden="true"></i>
+      </span>
+      <span class="title viewer-title"></span>
+      <span class="viewer-count"></span>
+    </div>
+    <div class="viewer-screen"></div>
+  </div>
+</dialog>
 
 <script type="application/json" id="shots-data" set:html={JSON.stringify(shots)} />
 
@@ -396,7 +421,7 @@ for (const project of projects) {
     }
   }
 
-  /* green phosphor screenshot: real colours on hover (or tap on touch screens) */
+  /* green phosphor screenshot: real colours on hover; click / tap opens the full-screen viewer */
   .shot {
     position: relative;
     margin: 0;
@@ -405,7 +430,132 @@ for (const project of projects) {
     border: 1px solid #1f3d2a;
     background: #050705;
     box-shadow: 0 0 24px rgb(74 222 128 / 0.12);
-    cursor: crosshair;
+    cursor: zoom-in;
+  }
+  .shot:focus-visible {
+    outline: 1px dashed var(--green);
+    outline-offset: 3px;
+  }
+  /* tooltip over the screenshot explaining hover / click */
+  .shot-tip {
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgb(11 14 12 / 0.88);
+    color: var(--fg);
+    font-size: 11px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
+  }
+  .shot-tip span:first-child {
+    color: var(--green);
+  }
+  .shot:hover .shot-tip,
+  .shot:focus-visible .shot-tip {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.25s;
+  }
+  @media (hover: none) {
+    .shot-tip {
+      display: none;
+    }
+  }
+
+  /* ---------- full-screen viewer: a second terminal window with the real colours ---------- */
+  .viewer {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 16px;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+  }
+  .viewer[open] {
+    display: grid;
+    place-items: center;
+  }
+  .viewer::backdrop {
+    background: rgb(0 0 0 / 0.78);
+    backdrop-filter: blur(3px);
+  }
+  .viewer[open] .viewer-win {
+    animation: win-close 0.3s var(--ease, ease) reverse;
+  }
+  .viewer-win {
+    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    max-width: min(1600px, 100%);
+    max-height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg);
+    box-shadow:
+      0 30px 80px rgb(0 0 0 / 0.7),
+      0 0 40px rgb(74 222 128 / 0.1);
+  }
+  .viewer-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .viewer-count {
+    justify-self: end;
+  }
+  .viewer-screen {
+    position: relative;
+    min-height: 0;
+    display: flex;
+    background: #050705;
+  }
+  .viewer-screen img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: calc(100vh - 32px - 40px);
+    margin: auto;
+  }
+  .viewer-step {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    font: inherit;
+    color: var(--fg);
+    background: rgb(11 14 12 / 0.8);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .viewer-step[data-step="-1"] { left: 10px; }
+  .viewer-step[data-step="1"] { right: 10px; }
+  .viewer-screen:hover .viewer-step,
+  .viewer-step:focus-visible {
+    opacity: 1;
+  }
+  .viewer-step:hover {
+    border-color: var(--dim);
   }
   .shot img {
     display: block;
@@ -424,12 +574,6 @@ for (const project of projects) {
       radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.45));
     transition: opacity 0.35s;
   }
-  .shot.color img {
-    filter: none;
-  }
-  .shot.color::after {
-    opacity: 0;
-  }
   @media (hover: hover) {
     .shot:hover img {
       filter: none;
@@ -445,10 +589,12 @@ for (const project of projects) {
     .window,
     .split-body,
     .shot img,
-    .shot::after {
+    .shot::after,
+    .shot-tip {
       transition: none;
     }
-    .fade {
+    .fade,
+    .viewer[open] .viewer-win {
       animation: none;
     }
   }
